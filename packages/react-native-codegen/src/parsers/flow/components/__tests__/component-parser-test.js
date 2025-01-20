@@ -11,9 +11,9 @@
 
 'use strict';
 
-const FlowParser = require('../../index.js');
-const fixtures = require('../__test_fixtures__/fixtures.js');
 const failureFixtures = require('../__test_fixtures__/failures.js');
+const fixtures = require('../__test_fixtures__/fixtures.js');
+const {FlowParser} = require('../../parser');
 jest.mock('fs', () => ({
   readFileSync: filename => {
     // Jest in the OSS does not allow to capture variables in closures.
@@ -25,12 +25,14 @@ jest.mock('fs', () => ({
   },
 }));
 
+const parser = new FlowParser();
+
 describe('RN Codegen Flow Parser', () => {
   Object.keys(fixtures)
     .sort()
     .forEach(fixtureName => {
       it(`can generate fixture ${fixtureName}`, () => {
-        const schema = FlowParser.parseFile(fixtureName);
+        const schema = parser.parseFile(fixtureName);
         const serializedSchema = JSON.stringify(schema, null, 2).replace(
           /"/g,
           "'",
@@ -44,7 +46,7 @@ describe('RN Codegen Flow Parser', () => {
     .forEach(fixtureName => {
       it(`Fails with error message ${fixtureName}`, () => {
         expect(() => {
-          FlowParser.parseFile(fixtureName);
+          parser.parseFile(fixtureName);
         }).toThrowErrorMatchingSnapshot();
       });
     });

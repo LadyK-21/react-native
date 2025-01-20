@@ -8,16 +8,16 @@
  * @flow
  */
 
-import {useState, useCallback, useMemo, useRef, useEffect} from 'react';
-
 import type {
-  PlatformTestResult,
-  PlatformTestHarness,
-  PlatformTestCase,
   PlatformTestAssertionResult,
+  PlatformTestCase,
   PlatformTestContext,
+  PlatformTestHarness,
+  PlatformTestResult,
   SyncTestOptions,
 } from './RNTesterPlatformTestTypes';
+
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 type AsyncTestStatus = 'NOT_RAN' | 'COMPLETED' | 'TIMED_OUT';
 
@@ -40,7 +40,7 @@ function constructAsyncTestHook(
   ) => Array<PlatformTestAssertionResult>,
 ) {
   return (description: string, timeoutMs?: number = 10000) => {
-    const assertionsRef = useRef([]);
+    const assertionsRef = useRef<Array<PlatformTestAssertionResult>>([]);
 
     const timeoutIDRef = useRef<TimeoutID | null>(null);
 
@@ -106,7 +106,7 @@ function constructAsyncTestHook(
       });
     }, [description]);
 
-    const stepHandler = useCallback(testCase => {
+    const stepHandler = useCallback((testCase: PlatformTestCase) => {
       const stepAssertions = runTestCase(testCase);
       assertionsRef.current.push(...stepAssertions);
     }, []);
@@ -131,24 +131,24 @@ function constructAsyncTestHook(
   };
 }
 
-export type PlatformTestHarnessHookResult = $ReadOnly<{|
+export type PlatformTestHarnessHookResult = $ReadOnly<{
   testKey: number,
   harness: PlatformTestHarness,
   numPending: number,
   reset: () => void,
   results: $ReadOnlyArray<PlatformTestResult>,
-|}>;
+}>;
 
 export default function usePlatformTestHarness(): PlatformTestHarnessHookResult {
   const [testResults, updateTestResults] = useState<
     $ReadOnlyArray<PlatformTestResult>,
   >([]);
 
-  // Since updaing the test results array can get expensive at larger sizes
+  // Since updating the test results array can get expensive at larger sizes
   // we use a basic debouncing logic to minimize the number of re-renders
   // caused by adding test results
   const resultQueueRef = useRef<Array<PlatformTestResult>>([]);
-  const schedulerTimeoutIdRef = useRef(null);
+  const schedulerTimeoutIdRef = useRef<null | TimeoutID>(null);
 
   const commitResults = useCallback(() => {
     const queuedResults = resultQueueRef.current;
@@ -174,7 +174,7 @@ export default function usePlatformTestHarness(): PlatformTestHarnessHookResult 
     [scheduleResultsCommit],
   );
 
-  // When reseting the test results we should also re-mount the
+  // When resetting the test results we should also re-mount the
   // so we apply a key to that component which we can increment
   // to ensure it re-mounts
   const [testElementKey, setTestElementKey] = useState<number>(0);
@@ -220,7 +220,7 @@ export default function usePlatformTestHarness(): PlatformTestHarnessHookResult 
           'assert_true',
           cond,
           desc,
-          "expected 'true' but recieved 'false'",
+          "expected 'true' but received 'false'",
         ),
       assert_equals: (a: any, b: any, desc: string) =>
         baseAssert(

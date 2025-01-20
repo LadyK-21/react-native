@@ -19,9 +19,9 @@ const EVENT_DEFINITION = `
   boolean_optional_both?: boolean | null | undefined;
 
   string_required: string;
-  string_optional_key?: string;
-  string_optional_value: string | null | undefined;
-  string_optional_both?: string | null | undefined;
+  string_optional_key?: (string);
+  string_optional_value: (string) | null | undefined;
+  string_optional_both?: (string | null | undefined);
 
   double_required: Double;
   double_optional_key?: Double;
@@ -38,10 +38,10 @@ const EVENT_DEFINITION = `
   int32_optional_value: Int32 | null | undefined;
   int32_optional_both?: Int32 | null | undefined;
 
-  enum_required: 'small' | 'large';
-  enum_optional_key?: 'small' | 'large';
-  enum_optional_value: ('small' | 'large') | null | undefined;
-  enum_optional_both?: ('small' | 'large') | null | undefined;
+  union_required: 'small' | 'large';
+  union_optional_key?: 'small' | 'large';
+  union_optional_value: ('small' | 'large') | null | undefined;
+  union_optional_both?: ('small' | 'large') | null | undefined;
 
   object_required: {
     boolean_required: boolean;
@@ -84,6 +84,57 @@ const EVENT_DEFINITION = `
   object_readonly_optional_both?: Readonly<{
     int32_optional_both?: Int32 | null | undefined;
   }> | null | undefined;
+
+  boolean_array_required: boolean[];
+  boolean_array_optional_key?: boolean[];
+  boolean_array_optional_value: boolean[] | null | undefined;
+  boolean_array_optional_both?: boolean[] | null | undefined;
+
+  string_array_required: string[];
+  string_array_optional_key?: (string[]);
+  string_array_optional_value: (string[]) | null | undefined;
+  string_array_optional_both?: (string[] | null | undefined);
+
+  double_array_required: Double[];
+  double_array_optional_key?: Double[];
+  double_array_optional_value: Double[] | null | undefined;
+  double_array_optional_both?: Double[] | null | undefined;
+
+  float_array_required: Float[];
+  float_array_optional_key?: Float[];
+  float_array_optional_value: Float[] | null | undefined;
+  float_array_optional_both?: Float[] | null | undefined;
+
+  int32_array_required: Int32[];
+  int32_array_optional_key?: Int32[];
+  int32_array_optional_value: Int32[] | null | undefined;
+  int32_array_optional_both?: Int32[] | null | undefined;
+
+  union_array_required: ('small' | 'large')[];
+  union_array_optional_key?: ('small' | 'large')[];
+  union_array_optional_value: ('small' | 'large')[] | null | undefined;
+  union_array_optional_both?: ('small' | 'large')[] | null | undefined;
+
+  object_array_required: {
+    boolean_required: boolean;
+  }[];
+
+  object_array_optional_key?: {
+    string_optional_key?: string;
+  }[];
+
+  object_array_optional_value: {
+    float_optional_value: Float | null | undefined;
+  }[] | null | undefined;
+
+  object_array_optional_both?: {
+    int32_optional_both?: Int32 | null | undefined;
+  }[] | null | undefined;
+
+  int32_array_array_required: Int32[][];
+  int32_array_array_optional_key?: Int32[][];
+  int32_array_array_optional_value: Int32[][] | null | undefined;
+  int32_array_array_optional_both?: Int32[][] | null | undefined;
 `;
 
 const ONE_OF_EACH_PROP_EVENT_DEFAULT_AND_OPTIONS = `
@@ -197,13 +248,14 @@ const ALL_PROP_TYPES_NO_EVENTS = `
 
 const codegenNativeComponent = require('codegenNativeComponent');
 
-import type {Int32, Double, Float, WithDefault} from 'CodegenTypes';
+import type {Int32, Double, Float, WithDefault, UnsafeMixed} from 'CodegenTypes';
 import type {ImageSource} from 'ImageSource';
 import type {
   ColorValue,
   ColorArrayValue,
   PointValue,
   EdgeInsetsValue,
+  DimensionValue,
 } from 'StyleSheetTypes';
 import type {ViewProps} from 'ViewPropTypes';
 import type {HostComponent} from 'react-native';
@@ -302,6 +354,17 @@ export interface ModuleProps extends ViewProps {
   insets_optional_key?: EdgeInsetsValue;
   insets_optional_value: EdgeInsetsValue | null | undefined;
   insets_optional_both?: EdgeInsetsValue | null | undefined;
+
+
+  // DimensionValue props
+  dimension_required: DimensionValue;
+  dimension_optional_key?: DimensionValue;
+  dimension_optional_value: DimensionValue | null | undefined;
+  dimension_optional_both?: DimensionValue | null | undefined;
+
+  // Mixed props
+  mixed_required: UnsafeMixed,
+  mixed_optional_key?: UnsafeMixed,
 }
 
 export default codegenNativeComponent<ModuleProps>(
@@ -330,6 +393,7 @@ import type {
   ColorArrayValue,
   PointValue,
   EdgeInsetsValue,
+  DimensionValue,
 } from 'StyleSheetTypes';
 import type {ViewProps} from 'ViewPropTypes';
 import type {HostComponent} from 'react-native';
@@ -403,6 +467,12 @@ export interface ModuleProps extends ViewProps {
   array_insets_optional_value: ReadonlyArray<EdgeInsetsValue> | null | undefined;
   array_insets_optional_both?: ReadonlyArray<EdgeInsetsValue> | null | undefined;
 
+  // DimensionValue props
+  array_dimension_required: ReadonlyArray<DimensionValue>;
+  array_dimension_optional_key?: ReadonlyArray<DimensionValue>;
+  array_dimension_optional_value: ReadonlyArray<DimensionValue> | null | undefined;
+  array_dimension_optional_both?: ReadonlyArray<DimensionValue> | null | undefined;
+
   // Object props
   array_object_required: ReadonlyArray<Readonly<{prop: string}>>;
   array_object_optional_key?: ReadonlyArray<Readonly<{prop: string}>>;
@@ -452,6 +522,13 @@ export interface ModuleProps extends ViewProps {
   array_of_array_of_object_required_in_file: ReadonlyArray<
     ReadonlyArray<ObjectType>
   >;
+
+  // Nested array of array of object types (with spread)
+  array_of_array_of_object_required_with_spread: ReadonlyArray<
+    ReadonlyArray<
+      Readonly<ObjectType & {}>,
+    >,
+  >,
 }
 
 export default codegenNativeComponent<ModuleProps>(
@@ -584,6 +661,9 @@ export interface ModuleProps extends ViewProps {
 
   // Nested array of array of object types (in file)
   array_of_array_of_object_required_in_file: readonly ObjectType[][];
+
+  // Nested array of array of object types (with spread)
+  array_of_array_of_object_required_with_spread: readonly Readonly<ObjectType & {}>[][];
 }
 
 export default codegenNativeComponent<ModuleProps>(
@@ -612,6 +692,7 @@ import type {
   ColorArrayValue,
   PointValue,
   EdgeInsetsValue,
+  DimensionValue,
 } from 'StyleSheetTypes';
 import type {ViewProps} from 'ViewPropTypes';
 import type {HostComponent} from 'react-native';
@@ -676,6 +757,12 @@ export interface ModuleProps extends ViewProps {
   insets_optional_key: Readonly<{prop?: EdgeInsetsValue}>;
   insets_optional_value: Readonly<{prop: EdgeInsetsValue | null | undefined}>;
   insets_optional_both: Readonly<{prop?: EdgeInsetsValue | null | undefined}>;
+
+  // DimensionValue props
+  dimension_required: Readonly<{prop: DimensionValue}>;
+  dimension_optional_key: Readonly<{prop?: DimensionValue}>;
+  dimension_optional_value: Readonly<{prop: DimensionValue | null | undefined}>;
+  dimension_optional_both: Readonly<{prop?: DimensionValue | null | undefined}>;
 
   // Nested object props
   object_required: Readonly<{prop: Readonly<{nestedProp: string}>}>;
@@ -764,23 +851,23 @@ export interface ModuleProps extends ViewProps {
     }>
   >;
 
-  onDirectEventDefinedInlineOptionalKey?: DirectEventHandler<
+  onDirectEventDefinedInlineOptionalKey?: (DirectEventHandler<
     Readonly<{
       ${EVENT_DEFINITION}
     }>
-  >;
+  >);
 
-  onDirectEventDefinedInlineOptionalValue: DirectEventHandler<
+  onDirectEventDefinedInlineOptionalValue: (DirectEventHandler<
     Readonly<{
       ${EVENT_DEFINITION}
     }>
-  > | null | undefined;
+  >) | null | undefined;
 
-  onDirectEventDefinedInlineOptionalBoth?: DirectEventHandler<
+  onDirectEventDefinedInlineOptionalBoth?: (DirectEventHandler<
     Readonly<{
       ${EVENT_DEFINITION}
     }>
-  > | null | undefined;
+  > | null | undefined);
 
   onDirectEventDefinedInlineWithPaperName?: DirectEventHandler<
     Readonly<{
@@ -857,12 +944,12 @@ export interface ModuleProps extends ViewProps {
     'paperDirectEventDefinedInlineNullWithPaperName'
   > | null | undefined;
 
-  onBubblingEventDefinedInlineNull: BubblingEventHandler<null>;
-  onBubblingEventDefinedInlineNullOptionalKey?: BubblingEventHandler<null>;
-  onBubblingEventDefinedInlineNullOptionalValue: BubblingEventHandler<null> | null | undefined;
-  onBubblingEventDefinedInlineNullOptionalBoth?: BubblingEventHandler<null> | null | undefined;
+  onBubblingEventDefinedInlineNull: BubblingEventHandler<undefined>;
+  onBubblingEventDefinedInlineNullOptionalKey?: BubblingEventHandler<undefined>;
+  onBubblingEventDefinedInlineNullOptionalValue: BubblingEventHandler<undefined> | null | undefined;
+  onBubblingEventDefinedInlineNullOptionalBoth?: BubblingEventHandler<undefined> | null | undefined;
   onBubblingEventDefinedInlineNullWithPaperName?: BubblingEventHandler<
-    null,
+  undefined,
     'paperBubblingEventDefinedInlineNullWithPaperName'
   > | null | undefined;
 }
@@ -971,17 +1058,25 @@ type NativeType = HostComponent<ModuleProps>;
  interface NativeCommands {
    readonly handleRootTag: (viewRef: React.ElementRef<NativeType>, rootTag: RootTag) => void;
    readonly hotspotUpdate: (viewRef: React.ElementRef<NativeType>, x: Int32, y: Int32) => void;
-   readonly scrollTo: (
+   scrollTo(
      viewRef: React.ElementRef<NativeType>,
      x: Float,
      y: Int32,
      z: Double,
      animated: boolean,
-   ) => void;
+   ): void;
+   readonly arrayArgs: (
+    viewRef: React.ElementRef<NativeType>,
+    booleanArray: ReadOnlyArray<boolean>,
+    stringArray: ReadOnlyArray<string>,
+    floatArray: ReadOnlyArray<Float>,
+    intArray: ReadOnlyArray<Int32>,
+    doubleArray: ReadOnlyArray<Double>,
+  ) => void;
  }
 
  export const Commands = codegenNativeCommands<NativeCommands>({
-   supportedCommands: ['handleRootTag', 'hotspotUpdate', 'scrollTo'],
+   supportedCommands: ['handleRootTag', 'hotspotUpdate', 'scrollTo', 'arrayArgs'],
  });
 
 export default codegenNativeComponent<ModuleProps>(
@@ -1009,6 +1104,10 @@ import type {HostComponent} from 'react-native';
 export type Boolean = boolean;
 export type Int = Int32;
 export type Void = void;
+export type Locations = {
+  x: number,
+  y: number,
+}
 
 export interface ModuleProps extends ViewProps {
   // No props or events
@@ -1021,20 +1120,28 @@ export type ScrollTo = (
   y: Int,
   animated: Boolean,
 ) => Void;
+export type AddOverlays = (
+  viewRef: React.ElementRef<NativeType>,
+  overlayColorsReadOnly: ReadOnlyArray<string>,
+  overlayColorsArray: Array<string>,
+  overlayColorsArrayAnnotation: string[],
+  overlayLocations: ReadOnlyArray<Locations>,
+) => Void;
 
 interface NativeCommands {
   readonly scrollTo: ScrollTo;
+  readonly addOverlays: AddOverlays;
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ['scrollTo'],
+  supportedCommands: ['scrollTo', 'addOverlays'],
 });
 
 export default codegenNativeComponent<ModuleProps>('Module') as NativeType;
 
 `;
 
-const COMMANDS_AND_EVENTS_TYPES_EXPORTED = `
+const COMMANDS_EVENTS_TYPES_EXPORTED = `
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -1071,6 +1178,13 @@ export interface ModuleProps extends ViewProps {
   onDirectEventDefinedInlineWithPaperName: DirectEventHandler<EventInFile, 'paperDirectEventDefinedInlineWithPaperName'>,
 }
 
+// Add state here
+export interface ModuleNativeState {
+  boolean_required: boolean,
+  boolean_optional_key?: WithDefault<boolean, true>,
+  boolean_optional_both?: WithDefault<boolean, true>,
+}
+
 type NativeType = HostComponent<ModuleProps>;
 
 export type ScrollTo = (viewRef: React.ElementRef<NativeType>, y: Int, animated: Boolean) => Void;
@@ -1088,6 +1202,49 @@ export default codegenNativeComponent<ModuleProps>(
 ) as NativeType;
 `;
 
+const PROPS_AND_EVENTS_WITH_INTERFACES = `
+import type {
+  BubblingEventHandler,
+  DirectEventHandler,
+  Int32,
+} from 'CodegenTypes';
+import type {ViewProps} from 'ViewPropTypes';
+import type {HostComponent} from 'react-native';
+
+const codegenNativeComponent = require('codegenNativeComponent');
+
+export interface Base1 {
+  readonly x: string;
+}
+
+export interface Base2 {
+  readonly y: Int32;
+}
+
+export interface Derived extends Base1, Base2 {
+  readonly z: boolean;
+}
+
+export interface ModuleProps extends ViewProps {
+  // Props
+  ordinary_prop: Derived;
+  readonly_prop: Readonly<Derived>;
+  ordinary_array_prop?: readonly Derived[];
+  readonly_array_prop?: readonly Readonly<Derived>[];
+  ordinary_nested_array_prop?: readonly Derived[][];
+  readonly_nested_array_prop?: readonly Readonly<Derived>[][];
+
+  // Events
+  onDirect: DirectEventHandler<Derived>;
+  onBubbling: BubblingEventHandler<Readonly<Derived>>;
+}
+
+export default codegenNativeComponent<ModuleProps>('Module', {
+  interfaceOnly: true,
+  paperComponentName: 'RCTModule',
+}) as HostComponent<ModuleProps>;
+`;
+
 module.exports = {
   ALL_PROP_TYPES_NO_EVENTS,
   ARRAY_PROP_TYPES_NO_EVENTS,
@@ -1100,8 +1257,9 @@ module.exports = {
   EVENTS_DEFINED_INLINE_WITH_ALL_TYPES,
   EVENTS_DEFINED_AS_NULL_INLINE,
   PROPS_AND_EVENTS_TYPES_EXPORTED,
-  COMMANDS_AND_EVENTS_TYPES_EXPORTED,
+  COMMANDS_EVENTS_TYPES_EXPORTED,
   COMMANDS_DEFINED_WITH_ALL_TYPES,
   PROPS_AS_EXTERNAL_TYPES,
   COMMANDS_WITH_EXTERNAL_TYPES,
+  PROPS_AND_EVENTS_WITH_INTERFACES,
 };

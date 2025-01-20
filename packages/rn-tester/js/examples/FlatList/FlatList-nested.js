@@ -9,13 +9,14 @@
  */
 
 'use strict';
+import type {RNTesterModuleExample} from '../../types/RNTesterTypes';
+import type {ViewToken} from 'react-native/Libraries/Lists/ViewabilityHelper';
+import type {RenderItemProps} from 'react-native/Libraries/Lists/VirtualizedList';
 
+import RNTesterPage from '../../components/RNTesterPage';
 import * as React from 'react';
 import {useCallback, useEffect, useReducer} from 'react';
 import {FlatList, StyleSheet, Text, View} from 'react-native';
-
-import RNTesterPage from '../../components/RNTesterPage';
-import type {RNTesterModuleExample} from '../../types/RNTesterTypes';
 
 type OuterItem = 'head' | 'vertical' | 'horizontal' | 'filler';
 
@@ -78,7 +79,13 @@ function NestedListExample(): React.Node {
   const [inner, dispatchInner] = useReducer(reducer, initialItemsState);
 
   const onViewableItemsChanged = useCallback(
-    ({changed}) => {
+    ({
+      changed,
+    }: {
+      changed: Array<ViewToken>,
+      viewableItems: Array<ViewToken>,
+      ...
+    }) => {
       for (const token of changed) {
         dispatchOuter({
           type: token.isViewable ? 'add-viewable' : 'remove-viewable',
@@ -90,7 +97,7 @@ function NestedListExample(): React.Node {
   );
 
   return (
-    <RNTesterPage noSpacer={true} noScroll={true}>
+    <RNTesterPage noScroll={true}>
       <Text style={styles.debugText}>
         <Text style={styles.debugTextHeader}>Outer Viewable:{'\n'}</Text>
         {outerItems
@@ -109,11 +116,19 @@ function NestedListExample(): React.Node {
       </Text>
       <Text style={styles.debugText}>
         <Text style={styles.debugTextHeader}>Inner Viewable:{'\n'}</Text>
-        {inner.viewableItems.sort((a, b) => a - b).join(', ')}
+        {
+          // $FlowFixMe[react-rule-hook-mutation]
+          // $FlowFixMe[missing-local-annot]
+          inner.viewableItems.sort((a, b) => a - b).join(', ')
+        }
       </Text>
       <Text style={styles.debugText}>
         <Text style={styles.debugTextHeader}>Inner Rendered:{'\n'}</Text>
-        {inner.renderedItems.sort((a, b) => a - b).join(', ')}
+        {
+          // $FlowFixMe[react-rule-hook-mutation]
+          // $FlowFixMe[missing-local-annot]
+          inner.renderedItems.sort((a, b) => a - b).join(', ')
+        }
       </Text>
 
       <FlatList
@@ -162,7 +177,13 @@ function OuterItemRenderer({
   }, [dispatchOuter, index]);
 
   const onViewableItemsChanged = useCallback(
-    ({changed}) => {
+    ({
+      changed,
+    }: {
+      changed: Array<ViewToken>,
+      viewableItems: Array<ViewToken>,
+      ...
+    }) => {
       for (const token of changed) {
         dispatchInner({
           type: token.isViewable ? 'add-viewable' : 'remove-viewable',
@@ -187,7 +208,7 @@ function OuterItemRenderer({
           <View style={styles.col}>
             <FlatList
               data={items.map(i => index * items.length * 3 + i)}
-              renderItem={p => (
+              renderItem={(p: RenderItemProps<number>) => (
                 <InnerItemRenderer
                   item={p.item}
                   dispatchInner={dispatchInner}
@@ -202,7 +223,7 @@ function OuterItemRenderer({
           <View style={styles.col}>
             <FlatList
               data={items.map(i => index * items.length * 3 + i + items.length)}
-              renderItem={p => (
+              renderItem={(p: RenderItemProps<number>) => (
                 <InnerItemRenderer
                   item={p.item}
                   dispatchInner={dispatchInner}
@@ -225,7 +246,7 @@ function OuterItemRenderer({
             data={items.map(
               i => index * items.length * 3 + i + 2 * items.length,
             )}
-            renderItem={p => (
+            renderItem={(p: RenderItemProps<number>) => (
               <InnerItemRenderer item={p.item} dispatchInner={dispatchInner} />
             )}
             style={styles.childList}

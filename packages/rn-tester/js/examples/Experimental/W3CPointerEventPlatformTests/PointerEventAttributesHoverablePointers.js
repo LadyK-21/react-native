@@ -5,21 +5,21 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
+import type {PlatformTestComponentBaseProps} from '../PlatformTest/RNTesterPlatformTestTypes';
+import type {HostInstance} from 'react-native/Libraries/Renderer/shims/ReactNativeTypes';
 import type {
   Layout,
   PointerEvent,
 } from 'react-native/Libraries/Types/CoreEventTypes';
-import type {PlatformTestComponentBaseProps} from '../PlatformTest/RNTesterPlatformTestTypes';
-
-import * as React from 'react';
-import {useCallback, useRef, useState} from 'react';
-import {View, StyleSheet} from 'react-native';
 
 import RNTesterPlatformTest from '../PlatformTest/RNTesterPlatformTest';
 import {check_PointerEvent, useTestEventHandler} from './PointerEventSupport';
+import * as React from 'react';
+import {useCallback, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 const eventList = [
   'pointerOver',
@@ -36,8 +36,8 @@ function PointerEventAttributesHoverablePointersTestCase(
 ) {
   const {harness} = props;
 
-  const detected_pointertypesRef = useRef({});
-  const detected_eventTypesRef = useRef({});
+  const detected_pointertypesRef = useRef(({}: {[string]: boolean}));
+  const detected_eventTypesRef = useRef(({}: {[string]: boolean}));
   const expectedPointerIdRef = useRef(NaN);
 
   const [square1Visible, setSquare1Visible] = useState(true);
@@ -66,13 +66,16 @@ function PointerEventAttributesHoverablePointersTestCase(
         testNamePrefix + ' ' + expectedPointerType + ' ' + expectedEventType;
 
       detected_pointertypes[event.nativeEvent.pointerType] = true;
-      harness.test(({assert_equals}) => {
-        assert_equals(
-          eventType,
-          expectedEventType,
-          'Event.type should be ' + expectedEventType,
-        );
-      }, pointerTestName + "'s type should be " + expectedEventType);
+      harness.test(
+        ({assert_equals}) => {
+          assert_equals(
+            eventType,
+            expectedEventType,
+            'Event.type should be ' + expectedEventType,
+          );
+        },
+        pointerTestName + "'s type should be " + expectedEventType,
+      );
 
       // Test button and buttons
       if (eventType === 'pointerdown') {
@@ -168,7 +171,7 @@ function PointerEventAttributesHoverablePointersTestCase(
     [harness],
   );
 
-  const square1Ref = useRef();
+  const square1Ref = useRef<?HostInstance>();
   const square1Handlers = useTestEventHandler(eventList, (event, eventType) => {
     if (!square1Visible) {
       return;
@@ -189,7 +192,7 @@ function PointerEventAttributesHoverablePointersTestCase(
           eventList.length
         ) {
           setSquare1Visible(false);
-          detected_eventTypesRef.current = {};
+          detected_eventTypesRef.current = ({}: {[string]: boolean});
           setSquare2Visible(true);
           expectedPointerIdRef.current = NaN;
         }
@@ -197,7 +200,7 @@ function PointerEventAttributesHoverablePointersTestCase(
     }
   });
 
-  const square2Ref = useRef();
+  const square2Ref = useRef<?HostInstance>();
   const square2Handlers = useTestEventHandler(eventList, (event, eventType) => {
     const square2Elem = square2Ref.current;
     if (square2Elem != null) {

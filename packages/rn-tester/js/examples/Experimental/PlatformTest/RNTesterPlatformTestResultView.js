@@ -5,36 +5,36 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
-import type {RenderItemProps} from 'react-native/Libraries/Lists/VirtualizedList';
-import type {
-  ViewStyleProp,
-  TextStyle,
-} from 'react-native/Libraries/StyleSheet/StyleSheet';
 import type {
   PlatformTestResult,
   PlatformTestResultStatus,
 } from './RNTesterPlatformTestTypes';
+import type {RenderItemProps} from 'react-native/Libraries/Lists/VirtualizedList';
+import type {
+  TextStyle,
+  ViewStyleProp,
+} from 'react-native/Libraries/StyleSheet/StyleSheet';
 
 import RNTesterPlatformTestMinimizedResultView from './RNTesterPlatformTestMinimizedResultView';
 import RNTesterPlatformTestResultsText from './RNTesterPlatformTestResultsText';
-
 import * as React from 'react';
-import {useMemo, useState, useCallback} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {
   Button,
-  View,
-  Text,
-  StyleSheet,
   FlatList,
-  Modal,
-  SafeAreaView,
-  TextInput,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  SafeAreaView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 
 const DISPLAY_STATUS_MAPPING: {[PlatformTestResultStatus]: string} = {
@@ -47,9 +47,11 @@ const DISPLAY_STATUS_MAPPING: {[PlatformTestResultStatus]: string} = {
 type FilterModalProps = $ReadOnly<{
   filterText: string,
   setFilterText: (newFilterText: string) => void,
+  filterFail: boolean,
+  setFilterFail: (newFilterFail: boolean) => void,
 }>;
 function FilterModalButton(props: FilterModalProps) {
-  const {filterText, setFilterText} = props;
+  const {filterText, setFilterText, filterFail, setFilterFail} = props;
 
   const [modalVisible, setModalVisible] = useState(false);
   const [pendingFilterText, setPendingFilterText] = useState(filterText);
@@ -68,7 +70,14 @@ function FilterModalButton(props: FilterModalProps) {
     setModalVisible(false);
   }, []);
 
-  const onPendingTextChange = useCallback(newText => {
+  const onFilterFailStatus = useCallback(
+    (value: boolean) => {
+      setFilterFail(value);
+    },
+    [setFilterFail],
+  );
+
+  const onPendingTextChange = useCallback((newText: string) => {
     setPendingFilterText(newText);
   }, []);
 
@@ -82,7 +91,7 @@ function FilterModalButton(props: FilterModalProps) {
         transparent={true}>
         <SafeAreaView style={styles.filterModalRoot}>
           <KeyboardAvoidingView
-            style={styles.filterModalKeboardAvoidingRoot}
+            style={styles.filterModalKeyboardAvoidingRoot}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <View style={styles.filterModalContainer}>
               <View style={styles.filterModalContentContainer}>
@@ -100,6 +109,15 @@ function FilterModalButton(props: FilterModalProps) {
                   onChangeText={onPendingTextChange}
                   onSubmitEditing={onFilterSubmit}
                 />
+                <View style={styles.filterFail}>
+                  <Text>
+                    {filterFail ? 'Filter All Status' : 'Filter Only Failed'}
+                  </Text>
+                  <Switch
+                    value={filterFail}
+                    onValueChange={onFilterFailStatus}
+                  />
+                </View>
               </View>
               <View style={styles.filterModalActionsContainer}>
                 <Button title="Cancel" onPress={onFilterCancel} />
@@ -163,27 +181,32 @@ function renderTableRow({item}: RenderItemProps<PlatformTestResult>) {
   return <TableRow testResult={item} />;
 }
 
-type Props = $ReadOnly<{|
+type Props = $ReadOnly<{
   numPending: number,
   reset: () => void,
   results: $ReadOnlyArray<PlatformTestResult>,
   style?: ?ViewStyleProp,
-|}>;
+}>;
 export default function RNTesterPlatformTestResultView(
   props: Props,
 ): React.MixedElement {
   const {numPending, reset, results, style} = props;
 
   const [filterText, setFilterText] = useState('');
+  const [filterFailStatus, setFilterFailStatus] = useState(false);
 
   const filteredResults = useMemo(() => {
+    const statusFiltered = filterFailStatus
+      ? results.filter(result => result.status === 'FAIL')
+      : results;
+
     if (filterText === '') {
-      return results;
+      return statusFiltered;
     }
-    return results.filter(result =>
+    return statusFiltered.filter(result =>
       result.name.toLowerCase().includes(filterText.toLowerCase()),
     );
-  }, [filterText, results]);
+  }, [filterFailStatus, filterText, results]);
 
   const {numPass, numFail, numError, numSkipped} = useMemo(
     () =>
@@ -213,6 +236,7 @@ export default function RNTesterPlatformTestResultView(
   const [resultsExpanded, setResultsExpanded] = useState(false);
 
   const handleReset = useCallback(() => {
+    setFilterFailStatus(false);
     setFilterText('');
     reset();
     setResultsExpanded(false);
@@ -225,6 +249,11 @@ export default function RNTesterPlatformTestResultView(
   const handleMaximizedPress = useCallback(() => {
     setResultsExpanded(false);
   }, []);
+
+  const filteredNotice = `Filtered${filterFailStatus ? ' (Failed)' : ''}${
+    filterText !== '' ? `: ${filterText}` : ''
+  }
+  `;
 
   return (
     <>
@@ -250,11 +279,7 @@ export default function RNTesterPlatformTestResultView(
           <View style={styles.resultsHeader}>
             <View style={styles.titleContainer}>
               <Text style={styles.title}>Results</Text>
-              {filterText !== '' ? (
-                <Text style={styles.filteredText}>
-                  (Filtered: '{filterText}')
-                </Text>
-              ) : null}
+              <Text style={styles.filteredText}>{filteredNotice}</Text>
               <Text style={styles.summaryContainer}>
                 <RNTesterPlatformTestResultsText
                   numError={numError}
@@ -269,6 +294,8 @@ export default function RNTesterPlatformTestResultView(
               <FilterModalButton
                 filterText={filterText}
                 setFilterText={setFilterText}
+                filterFail={filterFailStatus}
+                setFilterFail={setFilterFailStatus}
               />
               <View style={styles.buttonSpacer} />
               <Button title="Reset" onPress={handleReset} />
@@ -373,10 +400,16 @@ const styles = StyleSheet.create({
     borderColor: 'rgb(171, 171, 171)',
     borderRadius: 8,
   },
-  filterModalKeboardAvoidingRoot: {
+  filterModalKeyboardAvoidingRoot: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  filterFail: {
+    alignItems: 'center',
+    padding: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   passText: {
     color: 'green',

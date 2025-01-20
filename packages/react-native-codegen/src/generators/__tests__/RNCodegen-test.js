@@ -11,14 +11,15 @@
 
 'use strict';
 
-const rnCodegen = require('../RNCodegen.js');
 const fixture = require('../__test_fixtures__/fixtures.js');
+const rnCodegen = require('../RNCodegen.js');
 const packageName = 'na';
 
 describe('RNCodegen.generate', () => {
   beforeEach(() => {
     jest.resetModules();
   });
+
   it('when type `all`, with default paths', () => {
     jest.mock('fs', () => ({
       existsSync: location => {
@@ -39,10 +40,13 @@ describe('RNCodegen.generate', () => {
           'ShadowNodes.cpp': componentsOutputDir,
           'Props.h': componentsOutputDir,
           'Props.cpp': componentsOutputDir,
+          'States.h': componentsOutputDir,
+          'States.cpp': componentsOutputDir,
           'RCTComponentViewHelpers.h': componentsOutputDir,
           'EventEmitters.h': componentsOutputDir,
           'EventEmitters.cpp': componentsOutputDir,
           'ComponentDescriptors.h': componentsOutputDir,
+          'ComponentDescriptors.cpp': componentsOutputDir,
         };
 
         let receivedDir = path.dirname(location);
@@ -50,6 +54,7 @@ describe('RNCodegen.generate', () => {
 
         let expectedPath = path.join(
           outputDirectory,
+          // $FlowFixMe[invalid-computed-prop]
           expectedPaths[receivedBasename],
         );
         expect(receivedDir).toEqual(expectedPath);

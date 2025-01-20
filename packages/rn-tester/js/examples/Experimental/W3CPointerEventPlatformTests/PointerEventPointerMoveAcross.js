@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import type {PlatformTestComponentBaseProps} from '../PlatformTest/RNTesterPlatformTestTypes';
@@ -14,7 +14,7 @@ import RNTesterPlatformTest from '../PlatformTest/RNTesterPlatformTest';
 import RNTesterPlatformTestEventRecorder from '../PlatformTest/RNTesterPlatformTestEventRecorder';
 import * as React from 'react';
 import {useCallback, useState} from 'react';
-import {View, StyleSheet} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 const styles = StyleSheet.create({
   a: {
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     width: 200,
   },
   b: {
-    marginLeft: 100,
+    marginLeft: 50,
     height: 120,
     width: 200,
     backgroundColor: 'green',
@@ -32,8 +32,8 @@ const styles = StyleSheet.create({
     height: 120,
     width: 200,
     backgroundColor: 'yellow',
-    marginVertical: 100,
-    marginLeft: 100,
+    marginVertical: 10,
+    marginLeft: 50,
   },
   a1: {
     backgroundColor: 'blue',
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
   b1: {
     padding: 1,
-    marginLeft: 100,
+    marginLeft: 50,
     height: 120,
     width: 200,
     backgroundColor: 'green',
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     height: 120,
     width: 200,
     backgroundColor: 'black',
-    marginLeft: 100,
+    marginLeft: 50,
   },
 });
 
